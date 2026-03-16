@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playground - Golf Game Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: #263442;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Header */
+        .header {
+            height: 56px;
+            background: #263442;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid #353F54;
+        }
+
+        .header-title {
+            font-family: 'Nexa', 'Segoe UI', sans-serif;
+            font-weight: bold;
+            font-size: 18px;
+            color: #FFFFFF;
+        }
+
+        .header-button {
+            background: none;
+            border: none;
+            color: #FFFFFF;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* Cards */
+        .card {
+            background: linear-gradient(135deg, #353F54 0%, #222733 100%);
+            border: 2px solid;
+            border-image: linear-gradient(90deg, #FFFFFF 0%, #000000 100%) 1;
+            border-radius: 2px;
+            padding: 16px;
+            margin: 16px;
+        }
+
+        .card.inverted {
+            background: linear-gradient(135deg, #222733 0%, #353F54 100%);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 16px;
+            text-align: center;
+        }
+
+        .btn-secondary {
+            background: #353F54;
+            color: white;
+            border: 1px solid #B0B0B0;
+            border-radius: 2px;
+            padding: 16px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 16px 16px 16px;
+            text-align: center;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 16px;
+            text-align: center;
+        }
+
+        /* Hero Buttons */
+        .btn-hero {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border: none;
+            color: white;
+            font-size: 80px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 40px auto;
+            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .btn-hero:active {
+            transform: scale(0.95);
+        }
+
+        .btn-hero-small {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border: none;
+            color: white;
+            font-size: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .btn-hero-small:active {
+            transform: scale(0.95);
+        }
+
+        /* Input Fields */
+        .input-group {
+            margin: 16px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            color: #B0B0B0;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px;
+            background: #353F54;
+            border: 1px solid #B0B0B0;
+            border-radius: 2px;
+            color: #FFFFFF;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        .input-field::placeholder {
+            color: #B0B0B0;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .input-row input {
+            flex: 1;
+        }
+
+        .btn-add {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Dropdown */
+        .dropdown {
+            position: relative;
+            margin: 16px;
+        }
+
+        .dropdown-select {
+            width: 100%;
+            padding: 14px;
+            background: #353F54;
+            border: 1px solid #B0B0B0;
+            border-radius: 2px;
+            color: #FFFFFF;
+            font-size: 16px;
+            font-family: inherit;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+        }
+
+        .dropdown-select option {
+            background: #353F54;
+            color: #FFFFFF;
+        }
+
+        /* Lists */
+        .list-item {
+            padding: 16px;
+            border-bottom: 1px solid #353F54;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .list-item:hover {
+            background: #2A3441;
+        }
+
+        .list-item.selected {
+            background: #2A3441;
+        }
+
+        .list-info {
+            flex: 1;
+        }
+
+        .list-title {
+            font-size: 16px;
+            color: #FFFFFF;
+            font-weight: 500;
+        }
+
+        .list-subtitle {
+            font-size: 12px;
+            color: #B0B0B0;
+            margin-top: 4px;
+        }
+
+        .list-action {
+            background: none;
+            border: none;
+            color: #4CAF50;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* Checkbox */
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #B0B0B0;
+            border-radius: 4px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        /* Penalty List */
+        .penalty-item {
+            padding: 12px;
+            border-bottom: 1px solid #353F54;
+        }
+
+        .penalty-header {
+            font-size: 14px;
+            color: #FFFFFF;
+            font-weight: 500;
+        }
+
+        .penalty-detail {
+            font-size: 14px;
+            color: #FFFFFF;
+            margin-top: 4px;
+        }
+
+        .penalty-time {
+            font-size: 12px;
+            color: #B0B0B0;
+            margin-top: 4px;
+        }
+
+        /* Scrollable area */
+        .scrollable {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .scrollable::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .scrollable::-webkit-scrollbar-track {
+            background: #263442;
+        }
+
+        .scrollable::-webkit-scrollbar-thumb {
+            background: #353F54;
+            border-radius: 2px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #263442;
+            border: 2px solid;
+            border-image: linear-gradient(90deg, #FFFFFF 0%, #000000 100%) 1;
+            border-radius: 2px;
+            padding: 24px;
+            width: 280px;
+            text-align: center;
+        }
+
+        .modal-wide {
+            width: 340px;
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            color: #4CAF50;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            color: #FFFFFF;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #B0B0B0;
+            margin-bottom: 16px;
+        }
+
+        .modal-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            padding: 12px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Added Items List */
+        .added-item {
+            background: #353F54;
+            padding: 12px;
+            margin: 8px 16px;
+            border-radius: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .added-item-text {
+            color: #FFFFFF;
+            font-size: 14px;
+        }
+
+        .added-item-value {
+            color: #4CAF50;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .added-item-remove {
+            background: none;
+            border: none;
+            color: #f44336;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        /* Payment Summary */
+        .payment-row {
+            background: #353F54;
+            padding: 16px;
+            margin: 8px 16px;
+            border-radius: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .payment-from {
+            font-size: 14px;
+            color: #FFFFFF;
+        }
+
+        .payment-amount {
+            font-size: 16px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .payment-to {
+            font-size: 14px;
+            color: #FFFFFF;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #B0B0B0;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+        }
+
+        /* Percentage Inputs */
+        .percentage-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #353F54;
+        }
+
+        .percentage-label {
+            color: #FFFFFF;
+            font-size: 14px;
+        }
+
+        .percentage-input {
+            width: 80px;
+            padding: 8px;
+            background: #353F54;
+            border: 1px solid #B0B0B0;
+            border-radius: 2px;
+            color: #FFFFFF;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Game Status Card */
+        .status-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .status-icon {
+            margin-right: 8px;
+        }
+
+        .status-label {
+            font-size: 14px;
+            color: #FFFFFF;
+            font-weight: 500;
+        }
+
+        .status-value {
+            font-size: 16px;
+            color: #B0B0B0;
+        }
+
+        /* Group Card */
+        .group-card {
+            background: #353F54;
+            border: 2px solid #454F64;
+            border-radius: 2px;
+            padding: 16px;
+            margin: 12px 16px;
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .group-title {
+            font-size: 16px;
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+
+        .group-members {
+            font-size: 12px;
+            color: #B0B0B0;
+            margin-top: 4px;
+        }
+
+        .group-arrow {
+            color: #4CAF50;
+            font-size: 20px;
+        }
+
+        /* Position Card */
+        .position-card {
+            background: #353F54;
+            border: 2px solid #454F64;
+            border-radius: 2px;
+            padding: 16px;
+            margin: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .position-number {
+            font-size: 24px;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-right: 16px;
+        }
+
+        .position-info {
+            flex: 1;
+        }
+
+        .position-player {
+            font-size: 16px;
+            color: #FFFFFF;
+        }
+
+        .position-empty {
+            font-size: 14px;
+            color: #B0B0B0;
+        }
+
+        /* Bet Card */
+        .bet-card {
+            background: #353F54;
+            border: 2px solid #454F64;
+            border-radius: 2px;
+            padding: 16px;
+            margin: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bet-info {
+            flex: 1;
+        }
+
+        .bet-title {
+            font-size: 16px;
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+
+        .bet-details {
+            font-size: 12px;
+            color: #B0B0B0;
+            margin-top: 4px;
+        }
+
+        .bet-remove {
+            background: none;
+            border: none;
+            color: #f44336;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- Screen 1: Start - Create or Join -->
+        <div class="screen active" id="screen1">
+            <div class="header">
+                <div></div>
+                <div class="header-title">Playground</div>
+                <div></div>
+            </div>
+
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
+                <button class="btn-hero" onclick="goToScreen(2)">+</button>
+                <div style="text-align: center; margin-top: 20px;">
+                    <div style="font-size: 20px; color: #FFFFFF; font-weight: bold;">Crear Juego</div>
+                    <div style="font-size: 14px; color: #B0B0B0; margin-top: 8px;">Inicia un nuevo juego</div>
+                </div>
+            </div>
+
+            <div style="padding: 20px;">
+                <button class="btn-secondary" onclick="showComingSoon()">Unirse a Juego</button>
+            </div>
+        </div>
+
+        <!-- Screen 2: Add Players + Group Name -->
+        <div class="screen" id="screen2">
+            <div class="header">
+                <button class="header-button" onclick="goToScreen(1)">←</button>
+                <div class="header-title">Crear Juego</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div class="input-group">
+                        <label class="input-label">Nombre del Grupo</label>
+                        <input type="text" class="input-field" id="groupName" placeholder="Ej: Sábado Golf CCB">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="font-size: 16px; color: #FFFFFF; font-weight: 500; margin-bottom: 12px;">Añadir Jugadores</div>
+
+                    <div class="input-row" style="margin-bottom: 16px;">
+                        <input type="text" class="input-field" id="newPlayerName" placeholder="Nombre del jugador">
+                        <button class="btn-add" onclick="addPlayer()">+</button>
+                    </div>
+
+                    <div id="playersList"></div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="goToScreen(3)">Siguiente</button>
+        </div>
+
+        <!-- Screen 3: Add Penalties/Bonuses -->
+        <div class="screen" id="screen3">
+            <div class="header">
+                <button class="header-button" onclick="goToScreen(2)">←</button>
+                <div class="header-title">Crear Juego</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div style="font-size: 16px; color: #FFFFFF; font-weight: 500; margin-bottom: 12px;">Añadir Penalizaciones/Bonificaciones</div>
+
+                    <div class="input-group">
+                        <label class="input-label">Nombre</label>
+                        <input type="text" class="input-field" id="newPenaltyName" placeholder="Ej: Hoyo al agua">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Valor (use - para bonificaciones)</label>
+                        <div class="input-row">
+                            <input type="text" class="input-field" id="newPenaltyValue" placeholder="Ej: $10,000 o +1 golpe">
+                            <button class="btn-add" onclick="addPenalty()">+</button>
+                        </div>
+                    </div>
+
+                    <div id="penaltiesList"></div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="startGame()">Terminar y Comenzar</button>
+        </div>
+
+        <!-- Screen 4: In-Game Main View -->
+        <div class="screen" id="screen4">
+            <div class="header">
+                <button class="header-button">←</button>
+                <div class="header-title" id="gameTitle">Sábado Golf CCB</div>
+                <button class="header-button">⚙️</button>
+            </div>
+
+            <div class="scrollable">
+                <!-- Game Status Card -->
+                <div class="card">
+                    <div class="status-row">
+                        <span class="status-icon">📍</span>
+                        <span class="status-label">Hoyo: 5/18</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-icon">⏱️</span>
+                        <span class="status-label">Tiempo: 2h 15min</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-icon">👥</span>
+                        <span class="status-label">Jugadores: <span id="activePlayersCount">6</span> activos</span>
+                    </div>
+                </div>
+
+                <!-- Add Penalty Button -->
+                <div class="card inverted" style="padding: 24px;">
+                    <button class="btn-hero-small" onclick="goToScreen(5)">+</button>
+                    <div style="text-align: center; margin-top: 12px;">
+                        <div style="font-size: 16px; color: #FFFFFF; font-weight: 500;">Añadir Penalización</div>
+                        <div style="font-size: 12px; color: #B0B0B0; margin-top: 4px;">Toca para registrar</div>
+                    </div>
+                </div>
+
+                <!-- Recent Penalties -->
+                <div class="card">
+                    <div style="font-size: 14px; color: #FFFFFF; font-weight: 500; margin-bottom: 8px;">Penalizaciones Recientes</div>
+                    <div id="recentPenaltiesList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📝</div>
+                            <div class="empty-state-text">No hay penalizaciones registradas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-danger" onclick="goToScreen(7)">Finalizar Partida</button>
+        </div>
+
+        <!-- Screen 5: Select Player (for penalty) -->
+        <div class="screen" id="screen5">
+            <div class="header">
+                <button class="header-button" onclick="goToScreen(4)">← Cancel</button>
+                <div class="header-title">Añadir Penalización</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div style="font-size: 14px; color: #FFFFFF; font-weight: 500; margin-bottom: 8px;">Seleccionar Jugador</div>
+                    <div id="selectPlayerList"></div>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="continueToScreen6" onclick="goToScreen(6)" disabled>Siguiente</button>
+        </div>
+
+        <!-- Screen 6: Select Penalty Type -->
+        <div class="screen" id="screen6">
+            <div class="header">
+                <button class="header-button" onclick="goToScreen(5)">← Back</button>
+                <div class="header-title">Añadir Penalización</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div style="font-size: 14px; color: #FFFFFF; font-weight: 500; margin-bottom: 8px;">Seleccionar Penalización</div>
+                    <div id="selectPenaltyList"></div>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="confirmPenaltyBtn" onclick="confirmPenalty()" disabled>Confirmar</button>
+        </div>
+
+        <!-- Screen 7: Set Up Groups -->
+        <div class="screen" id="screen7">
+            <div class="header">
+                <button class="header-button" onclick="goToScreen(4)">←</button>
+                <div class="header-title">Armar Grupos</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div style="font-size: 14px; color: #FFFFFF; font-weight: 500; margin-bottom: 8px;">Asigna jugadores a los grupos</div>
+                </div>
+
+                <div class="group-card" onclick="openGroupSelector(1)">
+                    <div class="group-header">
+                        <div>
+                            <div class="group-title">Grupo 1</div>
+                            <div class="group-members" id="group1Members">Sin miembros</div>
+                        </div>
+                        <span class="group-arrow">→</span>
+                    </div>
+                </div>
+
+                <div class="group-card" onclick="openGroupSelector(2)">
+                    <div class="group-header">
+                        <div>
+                            <div class="group-title">Grupo 2</div>
+                            <div class="group-members" id="group2Members">Sin miembros</div>
+                        </div>
+                        <span class="group-arrow">→</span>
+                    </div>
+                </div>
+
+                <div class="group-card" onclick="openGroupSelector(3)">
+                    <div class="group-header">
+                        <div>
+                            <div class="group-title">Grupo 3</div>
+                            <div class="group-members" id="group3Members">Sin miembros</div>
+                        </div>
+                        <span class="group-arrow">→</span>
+                    </div>
+                </div>
+
+                <div class="group-card" onclick="openGroupSelector(4)">
+                    <div class="group-header">
+                        <div>
+                            <div class="group-title">Grupo 4</div>
+                            <div class="group-members" id="group4Members">Sin miembros</div>
+                        </div>
+                        <span class="group-arrow">→</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="goToScreen(8)">Siguiente</button>
+        </div>
+
+        <!-- Screen 7.5: Group Player Selector Modal -->
+        <div class="modal-overlay" id="groupSelectorModal">
+            <div class="modal modal-wide">
+                <div class="modal-title" id="groupSelectorTitle">Grupo 1</div>
+                <div style="max-height: 300px; overflow-y: auto; margin: 16px 0;">
+                    <div id="groupPlayerList"></div>
+                </div>
+                <button class="modal-btn" onclick="closeGroupSelector()">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- Screen 8: Define Bets -->
+        <div class="screen" id="screen8">
+            <div class="header">
+                <button class="header-button" onclick="goToScreen(7)">←</button>
+                <div class="header-title">Definir Apuestas</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div style="font-size: 14px; color: #FFFFFF; font-weight: 500; margin-bottom: 8px;">Tipo de Apuesta</div>
+                    <div class="dropdown">
+                        <select class="dropdown-select" id="betTypeDropdown" onchange="onBetTypeChange()">
+                            <option value="">Seleccionar...</option>
+                            <option value="individual">Individual</option>
+                            <option value="grupal">Grupal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="definedBetsList"></div>
+            </div>
+
+            <button class="btn-primary" onclick="goToScreen(10)">Continuar</button>
+        </div>
+
+        <!-- Screen 9: Individual Bet Details -->
+        <div class="screen" id="screen9">
+            <div class="header">
+                <button class="header-button" onclick="goToScreen(8)">←</button>
+                <div class="header-title">Apuesta Individual</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div class="input-group">
+                        <label class="input-label">Monto por Jugador</label>
+                        <input type="text" class="input-field" id="individualBetAmount" placeholder="Ej: $20,000 COP">
+                    </div>
+
+                    <div style="font-size: 14px; color: #FFFFFF; font-weight: 500; margin: 16px 0 8px;">Porcentaje de Repartición</div>
+
+                    <div class="percentage-row">
+                        <span class="percentage-label">🥇 1° Lugar:</span>
+                        <input type="number" class="percentage-input" id="pct1" value="70" min="0" max="100" onchange="checkPercentageSum()">%
+                    </div>
+                    <div class="percentage-row">
+                        <span class="percentage-label">🥈 2° Lugar:</span>
+                        <input type="number" class="percentage-input" id="pct2" value="20" min="0" max="100" onchange="checkPercentageSum()">%
+                    </div>
+                    <div class="percentage-row">
+                        <span class="percentage-label">🥉 3° Lugar:</span>
+                        <input type="number" class="percentage-input" id="pct3" value="10" min="0" max="100" onchange="checkPercentageSum()">%
+                    </div>
+
+                    <div style="margin-top: 16px;">
+                        <span style="color: #B0B0B0; font-size: 14px;">Total: </span>
+                        <span id="percentageSum" style="color: #4CAF50; font-size: 14px; font-weight: bold;">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="addIndividualBet()">Agregar Apuesta</button>
+        </div>
+
+        <!-- Screen 9.5: Group Bet Details -->
+        <div class="screen" id="screen9_5">
+            <div class="header">
+                <button class="header-button" onclick="goToScreen(8)">←</button>
+                <div class="header-title">Apuesta Grupal</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div style="font-size: 14px; color: #FFFFFF; margin-bottom: 8px;">
+                        <strong>Nota:</strong> El grupo ganador se lleva el 100% de esta apuesta
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Monto por Persona</label>
+                        <input type="text" class="input-field" id="groupBetAmount" placeholder="Ej: $10,000 COP">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="addGroupBet()">Agregar Apuesta</button>
+        </div>
+
+        <!-- Screen 10: Game Results -->
+        <div class="screen" id="screen10">
+            <div class="header">
+                <button class="header-button" onclick="goToScreen(8)">←</button>
+                <div class="header-title">Resultados del Juego</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div style="font-size: 14px; color: #FFFFFF; font-weight: 500; margin-bottom: 8px;">Orden de Jugadores</div>
+                </div>
+
+                <div id="positionsList"></div>
+
+                <div class="card" style="margin-top: 16px;">
+                    <div style="font-size: 14px; color: #FFFFFF; font-weight: 500; margin-bottom: 8px;">Grupo Ganador</div>
+                    <div class="list-item" onclick="selectWinnerGroup(this, 1)">
+                        <div class="checkbox" id="winner-group-1"></div>
+                        <div class="list-info">
+                            <div class="list-title">Grupo 1</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="selectWinnerGroup(this, 2)">
+                        <div class="checkbox" id="winner-group-2"></div>
+                        <div class="list-info">
+                            <div class="list-title">Grupo 2</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="selectWinnerGroup(this, 3)">
+                        <div class="checkbox" id="winner-group-3"></div>
+                        <div class="list-info">
+                            <div class="list-title">Grupo 3</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="selectWinnerGroup(this, 4)">
+                        <div class="checkbox" id="winner-group-4"></div>
+                        <div class="list-info">
+                            <div class="list-title">Grupo 4</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="goToScreen(11)">Calcular Pagos</button>
+        </div>
+
+        <!-- Screen 10.5: Position Player Selector Modal -->
+        <div class="modal-overlay" id="positionSelectorModal">
+            <div class="modal modal-wide">
+                <div class="modal-title" id="positionSelectorTitle">Seleccionar Jugador</div>
+                <div style="max-height: 300px; overflow-y: auto; margin: 16px 0;">
+                    <div id="positionPlayerList"></div>
+                </div>
+                <button class="modal-btn" onclick="closePositionSelector()">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- Screen 11: Payment Summary -->
+        <div class="screen" id="screen11">
+            <div class="header">
+                <div></div>
+                <div class="header-title">Resumen de Pagos</div>
+                <div></div>
+            </div>
+
+            <div class="scrollable">
+                <div class="card">
+                    <div style="font-size: 16px; color: #FFFFFF; font-weight: 500; margin-bottom: 8px; text-align: center;">💰 Quién le debe a quién</div>
+                </div>
+
+                <div id="paymentsList"></div>
+            </div>
+
+            <button class="btn-primary" onclick="finishGame()">Finalizar</button>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="modal-overlay" id="successModal">
+            <div class="modal">
+                <div class="modal-icon">✓</div>
+                <div class="modal-title">¡Penalización agregada!</div>
+                <div class="modal-text" id="modalText">Mateo - Hoyo al agua (+1)</div>
+                <button class="modal-btn" onclick="closeSuccessModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            groupName: '',
+            players: [],
+            penalties: [],
+            recentPenalties: [],
+            groups: {
+                1: [],
+                2: [],
+                3: [],
+                4: []
+            },
+            bets: [],
+            positions: {},
+            winnerGroup: null,
+            payments: []
+        };
+
+        let selectedPlayer = null;
+        let selectedPenalty = null;
+        let currentGroupSelector = null;
+        let currentPositionSelector = null;
+
+        // Navigation
+        function goToScreen(screenNum) {
+            let screenId;
+            if (typeof screenNum === 'number' && screenNum % 1 !== 0) {
+                // Handle decimal numbers like 9.5
+                screenId = 'screen' + screenNum.toString().replace('.', '_');
+            } else {
+                screenId = 'screen' + screenNum;
+            }
+
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+
+            // Update game title
+            if (screenNum === 4 && gameState.groupName) {
+                document.getElementById('gameTitle').textContent = gameState.groupName;
+            }
+
+            // Update player count
+            if (screenNum === 4) {
+                document.getElementById('activePlayersCount').textContent = gameState.players.length;
+            }
+
+            // Render players list for selection
+            if (screenNum === 5) {
+                renderPlayerSelectionList();
+            }
+
+            // Render penalties list for selection
+            if (screenNum === 6) {
+                renderPenaltySelectionList();
+            }
+
+            // Render positions list
+            if (screenNum === 10) {
+                renderPositionsList();
+            }
+
+            // Render bets list
+            if (screenNum === 8) {
+                renderBetsList();
+                document.getElementById('betTypeDropdown').value = '';
+            }
+
+            // Generate payments
+            if (screenNum === 11) {
+                generatePayments();
+            }
+        }
+
+        // Player Management
+        function addPlayer() {
+            const input = document.getElementById('newPlayerName');
+            const name = input.value.trim();
+
+            if (name && !gameState.players.includes(name)) {
+                gameState.players.push(name);
+                input.value = '';
+                renderPlayersList();
+            }
+        }
+
+        function removePlayer(name) {
+            gameState.players = gameState.players.filter(p => p !== name);
+            renderPlayersList();
+        }
+
+        function renderPlayersList() {
+            const container = document.getElementById('playersList');
+            if (gameState.players.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-text">No hay jugadores añadidos</div></div>';
+            } else {
+                container.innerHTML = gameState.players.map(player => `
+                    <div class="added-item">
+                        <span class="added-item-text">${player}</span>
+                        <button class="added-item-remove" onclick="removePlayer('${player}')">×</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Penalty Management
+        function addPenalty() {
+            const nameInput = document.getElementById('newPenaltyName');
+            const valueInput = document.getElementById('newPenaltyValue');
+            const name = nameInput.value.trim();
+            const value = valueInput.value.trim();
+
+            if (name && value) {
+                gameState.penalties.push({ name, value });
+                nameInput.value = '';
+                valueInput.value = '';
+                renderPenaltiesList();
+            }
+        }
+
+        function removePenalty(index) {
+            gameState.penalties.splice(index, 1);
+            renderPenaltiesList();
+        }
+
+        function renderPenaltiesList() {
+            const container = document.getElementById('penaltiesList');
+            if (gameState.penalties.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text">No hay penalizaciones configuradas</div></div>';
+            } else {
+                container.innerHTML = gameState.penalties.map((penalty, index) => `
+                    <div class="added-item">
+                        <span class="added-item-text">${penalty.name}</span>
+                        <span class="added-item-value">${penalty.value}</span>
+                        <button class="added-item-remove" onclick="removePenalty(${index})">×</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Start Game
+        function startGame() {
+            gameState.groupName = document.getElementById('groupName').value || 'Partida de Golf';
+            goToScreen(4);
+        }
+
+        // Player Selection for Penalty
+        function renderPlayerSelectionList() {
+            const container = document.getElementById('selectPlayerList');
+            container.innerHTML = gameState.players.map(player => `
+                <div class="list-item" onclick="selectPlayerForPenalty(this, '${player}')">
+                    <div class="checkbox" id="player-select-${player}"></div>
+                    <div class="list-info">
+                        <div class="list-title">${player}</div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('continueToScreen6').disabled = true;
+        }
+
+        function selectPlayerForPenalty(element, playerName) {
+            document.querySelectorAll('#selectPlayerList .checkbox').forEach(cb => {
+                cb.classList.remove('checked');
+                cb.innerHTML = '';
+            });
+            document.querySelectorAll('#selectPlayerList .list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            const checkbox = element.querySelector('.checkbox');
+            checkbox.classList.add('checked');
+            checkbox.innerHTML = '✓';
+            element.classList.add('selected');
+
+            selectedPlayer = playerName;
+            document.getElementById('continueToScreen6').disabled = false;
+        }
+
+        // Penalty Type Selection
+        function renderPenaltySelectionList() {
+            const container = document.getElementById('selectPenaltyList');
+            const defaultPenalties = [
+                { name: 'Hoyo al agua', value: '+1 golpe' },
+                { name: 'Out of Bounds', value: '+1 golpe' },
+                { name: 'Lost Ball', value: '+1 golpe' },
+                { name: 'Birdie', value: '-1 golpe' },
+                { name: 'Eagle', value: '-2 golpes' }
+            ];
+
+            const allPenalties = [...defaultPenalties, ...gameState.penalties];
+
+            container.innerHTML = allPenalties.map(penalty => `
+                <div class="list-item" onclick="selectPenaltyType(this, '${penalty.name}', '${penalty.value}')">
+                    <div class="checkbox" id="penalty-select-${penalty.name.replace(/\s/g, '-')}"></div>
+                    <div class="list-info">
+                        <div class="list-title">${penalty.name}</div>
+                        <div class="list-subtitle">${penalty.value}</div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('confirmPenaltyBtn').disabled = true;
+        }
+
+        function selectPenaltyType(element, penaltyName, penaltyValue) {
+            document.querySelectorAll('#selectPenaltyList .checkbox').forEach(cb => {
+                cb.classList.remove('checked');
+                cb.innerHTML = '';
+            });
+            document.querySelectorAll('#selectPenaltyList .list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            const checkbox = element.querySelector('.checkbox');
+            checkbox.classList.add('checked');
+            checkbox.innerHTML = '✓';
+            element.classList.add('selected');
+
+            selectedPenalty = { name: penaltyName, value: penaltyValue };
+            document.getElementById('confirmPenaltyBtn').disabled = false;
+        }
+
+        function confirmPenalty() {
+            const modalText = document.getElementById('modalText');
+            modalText.textContent = `${selectedPlayer} - ${selectedPenalty.name} (${selectedPenalty.value})`;
+
+            // Add to recent penalties
+            gameState.recentPenalties.unshift({
+                player: selectedPlayer,
+                penalty: selectedPenalty.name,
+                value: selectedPenalty.value,
+                time: 'Ahora'
+            });
+
+            // Keep only last 5
+            if (gameState.recentPenalties.length > 5) {
+                gameState.recentPenalties.pop();
+            }
+
+            updateRecentPenalties();
+            document.getElementById('successModal').classList.add('show');
+        }
+
+        function updateRecentPenalties() {
+            const container = document.getElementById('recentPenaltiesList');
+            if (gameState.recentPenalties.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text">No hay penalizaciones registradas</div></div>';
+            } else {
+                container.innerHTML = gameState.recentPenalties.map(p => `
+                    <div class="penalty-item">
+                        <div class="penalty-header">📍 ${p.player}</div>
+                        <div class="penalty-detail">${p.penalty} - ${p.value}</div>
+                        <div class="penalty-time">${p.time}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('show');
+            selectedPlayer = null;
+            selectedPenalty = null;
+            goToScreen(4);
+        }
+
+        // Group Management
+        function openGroupSelector(groupNum) {
+            currentGroupSelector = groupNum;
+            document.getElementById('groupSelectorTitle').textContent = `Grupo ${groupNum}`;
+
+            const container = document.getElementById('groupPlayerList');
+            const availablePlayers = gameState.players.filter(p =>
+                !Object.values(gameState.groups).flat().includes(p) ||
+                gameState.groups[groupNum].includes(p)
+            );
+
+            if (availablePlayers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-text">No hay jugadores disponibles</div></div>';
+            } else {
+                container.innerHTML = availablePlayers.map(player => {
+                    const isInGroup = gameState.groups[groupNum].includes(player);
+                    return `
+                        <div class="list-item" onclick="togglePlayerInGroup('${player}')">
+                            <div class="checkbox ${isInGroup ? 'checked' : ''}">${isInGroup ? '✓' : ''}</div>
+                            <div class="list-info">
+                                <div class="list-title">${player}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('groupSelectorModal').classList.add('show');
+        }
+
+        function closeGroupSelector() {
+            document.getElementById('groupSelectorModal').classList.remove('show');
+            currentGroupSelector = null;
+            updateGroupMembers();
+        }
+
+        function togglePlayerInGroup(player) {
+            if (currentGroupSelector) {
+                const group = gameState.groups[currentGroupSelector];
+                const index = group.indexOf(player);
+
+                if (index > -1) {
+                    // Remove from group
+                    group.splice(index, 1);
+                } else {
+                    // Add to group (remove from other groups first)
+                    for (let i = 1; i <= 4; i++) {
+                        const gIndex = gameState.groups[i].indexOf(player);
+                        if (gIndex > -1) {
+                            gameState.groups[i].splice(gIndex, 1);
+                        }
+                    }
+                    group.push(player);
+                }
+
+                openGroupSelector(currentGroupSelector); // Refresh
+            }
+        }
+
+        function updateGroupMembers() {
+            for (let i = 1; i <= 4; i++) {
+                const members = gameState.groups[i];
+                const container = document.getElementById(`group${i}Members`);
+                if (members.length === 0) {
+                    container.textContent = 'Sin miembros';
+                } else {
+                    container.textContent = members.join(', ');
+                }
+            }
+        }
+
+        // Bet Management
+        function onBetTypeChange() {
+            const betType = document.getElementById('betTypeDropdown').value;
+            if (betType === 'individual') {
+                goToScreen(9);
+            } else if (betType === 'grupal') {
+                goToScreen(9.5);
+            }
+        }
+
+        function checkPercentageSum() {
+            const p1 = parseInt(document.getElementById('pct1').value) || 0;
+            const p2 = parseInt(document.getElementById('pct2').value) || 0;
+            const p3 = parseInt(document.getElementById('pct3').value) || 0;
+            const sum = p1 + p2 + p3;
+
+            const sumEl = document.getElementById('percentageSum');
+            sumEl.textContent = sum + '%';
+
+            if (sum === 100) {
+                sumEl.style.color = '#4CAF50';
+            } else {
+                sumEl.style.color = '#f44336';
+            }
+        }
+
+        function addIndividualBet() {
+            const amount = document.getElementById('individualBetAmount').value.trim();
+            const p1 = parseInt(document.getElementById('pct1').value) || 0;
+            const p2 = parseInt(document.getElementById('pct2').value) || 0;
+            const p3 = parseInt(document.getElementById('pct3').value) || 0;
+
+            if (amount && p1 + p2 + p3 === 100) {
+                gameState.bets.push({
+                    type: 'individual',
+                    amount,
+                    percentages: { 1: p1, 2: p2, 3: p3 }
+                });
+
+                document.getElementById('individualBetAmount').value = '';
+                goToScreen(8);
+            } else {
+                alert('Por favor ingresa un monto y asegúrate de que los porcentajes sumen 100%');
+            }
+        }
+
+        function addGroupBet() {
+            const amount = document.getElementById('groupBetAmount').value.trim();
+
+            if (amount) {
+                gameState.bets.push({
+                    type: 'grupal',
+                    amount
+                });
+
+                document.getElementById('groupBetAmount').value = '';
+                goToScreen(8);
+            } else {
+                alert('Por favor ingresa un monto');
+            }
+        }
+
+        function removeBet(index) {
+            gameState.bets.splice(index, 1);
+            renderBetsList();
+        }
+
+        function renderBetsList() {
+            const container = document.getElementById('definedBetsList');
+            if (gameState.bets.length === 0) {
+                container.innerHTML = '';
+            } else {
+                container.innerHTML = '<div class="card"><div style="font-size: 14px; color: #FFFFFF; font-weight: 500; margin-bottom: 8px;">Apuestas Definidas</div></div>' +
+                    gameState.bets.map((bet, index) => {
+                        let details = '';
+                        if (bet.type === 'individual') {
+                            details = `Individual - ${bet.amount} (${bet.percentages['1']}% / ${bet.percentages['2']}% / ${bet.percentages['3']}%)`;
+                        } else {
+                            details = `Grupal - ${bet.amount} (100% al ganador)`;
+                        }
+                        return `
+                            <div class="bet-card">
+                                <div class="bet-info">
+                                    <div class="bet-title">${bet.type === 'individual' ? '👤' : '👥'} ${bet.type === 'individual' ? 'Individual' : 'Grupal'}</div>
+                                    <div class="bet-details">${details}</div>
+                                </div>
+                                <button class="bet-remove" onclick="removeBet(${index})">×</button>
+                            </div>
+                        `;
+                    }).join('');
+            }
+        }
+
+        // Position Management
+        function renderPositionsList() {
+            const container = document.getElementById('positionsList');
+            const numPlayers = Math.min(gameState.players.length, 3);
+
+            let html = '';
+            for (let i = 1; i <= numPlayers; i++) {
+                const player = gameState.positions[i];
+                html += `
+                    <div class="position-card">
+                        <div class="position-number">${i}°</div>
+                        <div class="position-info">
+                            <div class="position-player">${player || '<span class="position-empty">Sin asignar</span>'}</div>
+                        </div>
+                        <button class="list-action" onclick="openPositionSelector(${i})">+</button>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function openPositionSelector(position) {
+            currentPositionSelector = position;
+            document.getElementById('positionSelectorTitle').textContent = `${position}° Lugar`;
+
+            const container = document.getElementById('positionPlayerList');
+            const assignedPlayers = Object.values(gameState.positions).filter(p => p);
+            const availablePlayers = gameState.players.filter(p => !assignedPlayers.includes(p));
+
+            if (availablePlayers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-text">No hay jugadores disponibles</div></div>';
+            } else {
+                container.innerHTML = availablePlayers.map(player => `
+                    <div class="list-item" onclick="selectPlayerForPosition('${player}')">
+                        <div class="list-info">
+                            <div class="list-title">${player}</div>
+                        </div>
+                        <button class="list-action">+</button>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('positionSelectorModal').classList.add('show');
+        }
+
+        function closePositionSelector() {
+            document.getElementById('positionSelectorModal').classList.remove('show');
+            currentPositionSelector = null;
+        }
+
+        function selectPlayerForPosition(player) {
+            if (currentPositionSelector) {
+                gameState.positions[currentPositionSelector] = player;
+                closePositionSelector();
+                renderPositionsList();
+            }
+        }
+
+        // Winner Group Selection
+        function selectWinnerGroup(element, groupNum) {
+            document.querySelectorAll('#screen10 .checkbox[id^="winner-group"]').forEach(cb => {
+                cb.classList.remove('checked');
+                cb.innerHTML = '';
+            });
+
+            const checkbox = element.querySelector('.checkbox');
+            checkbox.classList.add('checked');
+            checkbox.innerHTML = '✓';
+
+            gameState.winnerGroup = groupNum;
+        }
+
+        // Generate Payments
+        function generatePayments() {
+            const container = document.getElementById('paymentsList');
+
+            // Simple mock logic - in real app, this would calculate actual payments
+            const mockPayments = [
+                { from: 'Juan Pérez', to: 'Mateo Rodríguez', amount: '$15,000' },
+                { from: 'Pedro López', to: 'Felipe Fonnegra', amount: '$8,000' }
+            ];
+
+            if (mockPayments.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✓</div><div class="empty-state-text">No hay pagos pendientes</div></div>';
+            } else {
+                container.innerHTML = mockPayments.map(payment => `
+                    <div class="payment-row">
+                        <span class="payment-from">${payment.from}</span>
+                        <span class="payment-amount">${payment.amount}</span>
+                        <span class="payment-to">→ ${payment.to}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Finish Game
+        function finishGame() {
+            // Reset game state
+            gameState = {
+                groupName: '',
+                players: [],
+                penalties: [],
+                recentPenalties: [],
+                groups: { 1: [], 2: [], 3: [], 4: [] },
+                bets: [],
+                positions: {},
+                winnerGroup: null,
+                payments: []
+            };
+
+            // Clear form inputs
+            document.getElementById('groupName').value = '';
+            document.getElementById('newPlayerName').value = '';
+            document.getElementById('newPenaltyName').value = '';
+            document.getElementById('newPenaltyValue').value = '';
+
+            // Reset checkboxes
+            document.querySelectorAll('.checkbox').forEach(cb => {
+                cb.classList.remove('checked');
+                cb.innerHTML = '';
+            });
+
+            // Reset dropdown
+            document.getElementById('betTypeDropdown').value = '';
+
+            goToScreen(1);
+        }
+
+        // Coming Soon
+        function showComingSoon() {
+            alert('Próximamente: Unirse a un juego existente');
+        }
+
+        // Initialize
+        renderPlayersList();
+        renderPenaltiesList();
+    </script>
+</body>
+</html>
