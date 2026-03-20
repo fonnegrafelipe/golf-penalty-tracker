@@ -1743,18 +1743,24 @@
                 return;
             }
 
-            // Close declare modal
-            closeDeclarePaymentModal();
+            // Save payment data before closing modal
+            const paymentData = {
+                from: currentPayment.from,
+                to: currentPayment.to
+            };
+
+            // Close declare modal (without clearing currentPayment)
+            document.getElementById('declarePaymentModal').classList.remove('show');
 
             // Open confirm modal (as the creditor)
-            openConfirmPaymentModal(parseInt(amount));
+            openConfirmPaymentModal(parseInt(amount), paymentData);
         }
 
         // Open Confirm Payment Modal
-        function openConfirmPaymentModal(amount) {
+        function openConfirmPaymentModal(amount, paymentData) {
             // Update modal content
             document.getElementById('confirmPaymentTitle').textContent =
-                `${currentPayment.from} te ha pagado`;
+                `${paymentData.from} te ha pagado`;
             document.getElementById('confirmPaymentAmount').textContent =
                 `$${amount.toLocaleString()}`;
 
@@ -1767,6 +1773,9 @@
                 document.getElementById('confirmProofImage').style.display = 'none';
                 document.getElementById('noProofText').style.display = 'block';
             }
+
+            // Store current payment data for confirmation
+            currentPayment = paymentData;
 
             // Show modal
             document.getElementById('confirmPaymentModal').classList.add('show');
