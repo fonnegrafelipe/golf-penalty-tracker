@@ -1040,9 +1040,67 @@
                 </div>
 
                 <div id="paymentsList"></div>
+
+                <!-- Confirmed Payments Section -->
+                <div class="card" style="margin-top: 16px;" id="confirmedPaymentsCard" style="display: none;">
+                    <div style="font-size: 14px; color: #4CAF50; font-weight: 500; margin-bottom: 8px;">✓ Pagos Confirmados</div>
+                    <div id="confirmedPaymentsList"></div>
+                </div>
             </div>
 
             <button class="btn-primary" onclick="finishGame()">Finalizar</button>
+        </div>
+
+        <!-- Modal: Declarar Pago -->
+        <div class="modal-overlay" id="declarePaymentModal">
+            <div class="modal modal-wide">
+                <div class="modal-title">Declarar Pago</div>
+                <div class="modal-text" id="declarePaymentText" style="color: #FFFFFF; margin-bottom: 16px;">Juan Pérez le debe $15,000 a Mateo Rodríguez</div>
+
+                <div style="text-align: left; margin: 16px 0;">
+                    <label style="color: #B0B0B0; font-size: 14px; display: block; margin-bottom: 8px;">¿Cuánto vas a pagar?</label>
+                    <input type="number" id="paymentAmount" class="modal-input" placeholder="$0" style="width: 100%; padding: 12px; background: #353F54; border: 1px solid #B0B0B0; border-radius: 2px; color: #FFFFFF; font-size: 16px;">
+                </div>
+
+                <div style="text-align: left; margin: 16px 0;">
+                    <label style="color: #B0B0B0; font-size: 14px; display: block; margin-bottom: 8px;">Comprobante (opcional)</label>
+                    <div style="border: 2px dashed #B0B0B0; border-radius: 2px; padding: 20px; text-align: center; cursor: pointer; position: relative;" onclick="document.getElementById('proofUpload').click()">
+                        <input type="file" id="proofUpload" accept="image/*" style="display: none;" onchange="handleProofUpload(event)">
+                        <div id="uploadPlaceholder">
+                            <div style="font-size: 24px;">📷</div>
+                            <div style="color: #B0B0B0; font-size: 12px; margin-top: 8px;">Toca para subir foto</div>
+                        </div>
+                        <img id="proofPreview" style="display: none; max-width: 100%; max-height: 150px; margin: 0 auto;">
+                    </div>
+                </div>
+
+                <button class="modal-btn" onclick="submitPaymentDeclaration()" style="width: 100%; margin: 8px 0;">Declarar</button>
+                <button class="modal-btn" onclick="closeDeclarePaymentModal()" style="background: #353F54; width: 100%; margin: 8px 0;">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- Modal: Confirmar Pago -->
+        <div class="modal-overlay" id="confirmPaymentModal">
+            <div class="modal modal-wide">
+                <div class="modal-icon">💰</div>
+                <div class="modal-title" id="confirmPaymentTitle">Juan Pérez te ha pagado</div>
+
+                <div style="background: #353F54; padding: 16px; border-radius: 2px; margin: 16px 0;">
+                    <div style="color: #FFFFFF; font-size: 16px; font-weight: bold; margin-bottom: 8px;" id="confirmPaymentAmount">$15,000</div>
+                    <div style="color: #4CAF50; font-size: 14px;" id="confirmPaymentStatus">Pago pendiente de confirmación</div>
+                </div>
+
+                <div style="margin: 16px 0;">
+                    <div style="color: #B0B0B0; font-size: 12px; margin-bottom: 8px;">Comprobante</div>
+                    <img id="confirmProofImage" style="display: none; max-width: 100%; max-height: 150px; border-radius: 2px; border: 1px solid #B0B0B0;">
+                    <div id="noProofText" style="color: #B0B0B0; font-size: 12px; font-style: italic;">No se subió comprobante</div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button class="modal-btn" onclick="confirmPayment(true)" style="flex: 1; margin: 0;">Aceptar</button>
+                    <button class="modal-btn" onclick="confirmPayment(false)" style="background: #f44336; flex: 1; margin: 0;">No aceptar</button>
+                </div>
+            </div>
         </div>
 
         <!-- Success Modal -->
@@ -1072,13 +1130,18 @@
             bets: [],
             positions: {},
             winnerGroup: null,
-            payments: []
+            payments: [],
+            confirmedPayments: []
         };
 
         let selectedPlayer = null;
         let selectedPenalty = null;
         let currentGroupSelector = null;
         let currentPositionSelector = null;
+
+        // Payment tracking
+        let currentPayment = null;
+        let currentPaymentProof = null;
 
         // Navigation
         function goToScreen(screenNum) {
@@ -1564,18 +1627,21 @@
 
             // Simple mock logic - in real app, this would calculate actual payments
             const mockPayments = [
-                { from: 'Juan Pérez', to: 'Mateo Rodríguez', amount: '$15,000' },
-                { from: 'Pedro López', to: 'Felipe Fonnegra', amount: '$8,000' }
+                { from: 'Juan Pérez', to: 'Mateo Rodríguez', amount: 15000 },
+                { from: 'Pedro López', to: 'Felipe Fonnegra', amount: 8000 }
             ];
 
             if (mockPayments.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✓</div><div class="empty-state-text">No hay pagos pendientes</div></div>';
             } else {
-                container.innerHTML = mockPayments.map(payment => `
-                    <div class="payment-row">
-                        <span class="payment-from">${payment.from}</span>
-                        <span class="payment-amount">${payment.amount}</span>
-                        <span class="payment-to">→ ${payment.to}</span>
+                container.innerHTML = mockPayments.map((payment, index) => `
+                    <div class="payment-row" style="flex-direction: column; align-items: stretch;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span class="payment-from">${payment.from}</span>
+                            <span class="payment-amount">$${payment.amount.toLocaleString()}</span>
+                            <span class="payment-to">→ ${payment.to}</span>
+                        </div>
+                        <button class="btn-secondary" onclick="openDeclarePaymentModal(${index})" style="margin: 0; padding: 10px; font-size: 14px;">💳 Declarar Pago</button>
                     </div>
                 `).join('');
             }
@@ -1593,7 +1659,8 @@
                 bets: [],
                 positions: {},
                 winnerGroup: null,
-                payments: []
+                payments: [],
+                confirmedPayments: []
             };
 
             // Clear form inputs
@@ -1617,6 +1684,140 @@
         // Coming Soon
         function showComingSoon() {
             alert('Próximamente: Unirse a un juego existente');
+        }
+
+        // ========== PAYMENT FLOW FUNCTIONS ==========
+
+        // Open Declare Payment Modal
+        function openDeclarePaymentModal(paymentIndex) {
+            const mockPayments = [
+                { from: 'Juan Pérez', to: 'Mateo Rodríguez', amount: 15000 },
+                { from: 'Pedro López', to: 'Felipe Fonnegra', amount: 8000 }
+            ];
+
+            currentPayment = mockPayments[paymentIndex];
+
+            // Update modal text
+            document.getElementById('declarePaymentText').textContent =
+                `${currentPayment.from} le debe $${currentPayment.amount.toLocaleString()} a ${currentPayment.to}`;
+
+            // Clear previous input
+            document.getElementById('paymentAmount').value = '';
+            currentPaymentProof = null;
+            document.getElementById('proofPreview').style.display = 'none';
+            document.getElementById('uploadPlaceholder').style.display = 'block';
+
+            // Show modal
+            document.getElementById('declarePaymentModal').classList.add('show');
+        }
+
+        // Close Declare Payment Modal
+        function closeDeclarePaymentModal() {
+            document.getElementById('declarePaymentModal').classList.remove('show');
+            currentPayment = null;
+            currentPaymentProof = null;
+        }
+
+        // Handle Proof Upload
+        function handleProofUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentPaymentProof = e.target.result;
+                    document.getElementById('proofPreview').src = currentPaymentProof;
+                    document.getElementById('proofPreview').style.display = 'block';
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Submit Payment Declaration
+        function submitPaymentDeclaration() {
+            const amount = document.getElementById('paymentAmount').value;
+
+            if (!amount || amount <= 0) {
+                alert('Por favor ingresa un monto válido');
+                return;
+            }
+
+            // Close declare modal
+            closeDeclarePaymentModal();
+
+            // Open confirm modal (as the creditor)
+            openConfirmPaymentModal(parseInt(amount));
+        }
+
+        // Open Confirm Payment Modal
+        function openConfirmPaymentModal(amount) {
+            // Update modal content
+            document.getElementById('confirmPaymentTitle').textContent =
+                `${currentPayment.from} te ha pagado`;
+            document.getElementById('confirmPaymentAmount').textContent =
+                `$${amount.toLocaleString()}`;
+
+            // Show/hide proof image
+            if (currentPaymentProof) {
+                document.getElementById('confirmProofImage').src = currentPaymentProof;
+                document.getElementById('confirmProofImage').style.display = 'block';
+                document.getElementById('noProofText').style.display = 'none';
+            } else {
+                document.getElementById('confirmProofImage').style.display = 'none';
+                document.getElementById('noProofText').style.display = 'block';
+            }
+
+            // Show modal
+            document.getElementById('confirmPaymentModal').classList.add('show');
+        }
+
+        // Confirm or Reject Payment
+        function confirmPayment(accepted) {
+            const amount = parseInt(document.getElementById('paymentAmount').value) || currentPayment.amount;
+
+            if (accepted) {
+                // Add to confirmed payments
+                const confirmedPayment = {
+                    from: currentPayment.from,
+                    to: currentPayment.to,
+                    amount: amount,
+                    timestamp: new Date().toISOString(),
+                    proof: currentPaymentProof
+                };
+
+                gameState.confirmedPayments.push(confirmedPayment);
+
+                // Update UI
+                renderConfirmedPayments();
+
+                alert(`✓ Pago confirmado: ${currentPayment.from} ha pagado $${amount.toLocaleString()} a ${currentPayment.to}`);
+            } else {
+                alert('Pago rechazado. ' + currentPayment.from + ' será notificado.');
+            }
+
+            // Close modal
+            document.getElementById('confirmPaymentModal').classList.remove('show');
+            currentPayment = null;
+            currentPaymentProof = null;
+        }
+
+        // Render Confirmed Payments
+        function renderConfirmedPayments() {
+            const container = document.getElementById('confirmedPaymentsList');
+            const card = document.getElementById('confirmedPaymentsCard');
+
+            if (gameState.confirmedPayments.length === 0) {
+                card.style.display = 'none';
+            } else {
+                card.style.display = 'block';
+                container.innerHTML = gameState.confirmedPayments.map(payment => `
+                    <div class="added-item">
+                        <div class="added-item-text">
+                            ✓ ${payment.from} ha pagado $${payment.amount.toLocaleString()} a ${payment.to}
+                        </div>
+                    </div>
+                `).join('');
+            }
         }
 
         // Initialize
